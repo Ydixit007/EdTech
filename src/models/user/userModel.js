@@ -71,6 +71,26 @@ const userSchema = new mongoose.Schema(
         ],
       },
     ],
+    mySessions: [
+      {
+        sessionId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "Session",
+          required: true,
+        },
+        enrolledAt: {
+          type: Date,
+          default: Date.now,
+        },
+        attended: {
+          type: Boolean,
+          default: false,
+        },
+        attendedAt: {
+          type: Date,
+        },
+      },
+    ],
   },
   {
     timestamps: true, // Automatically manages createdAt and updatedAt
@@ -210,6 +230,63 @@ userSchema.methods.getCourseProgress = function (courseId, totalVideos) {
 
   const completedCount = course.completedVideos.length;
   return totalVideos > 0 ? Math.round((completedCount / totalVideos) * 100) : 0;
+};
+
+// Instance method to add session to user's enrolled sessions
+userSchema.methods.addSession = async function (sessionId) {
+  const user = this;
+  const sessionExists = user.mySessions.some(
+    (session) => session.sessionId.toString() === sessionId.toString()
+  );
+
+  if (!sessionExists) {
+    user.mySessions.push({ sessionId });
+    await user.save();
+  }
+
+  return user;
+};
+
+// Instance method to mark session as attended
+userSchema.methods.markSessionAttended = async function (sessionId) {
+  const user = this;
+  const session = user.mySessions.find(
+    (session) => session.sessionId.toString() === sessionId.toString()
+  );
+
+  if (session) {
+    session.attended = true;
+    session.attendedAt = new Date();
+    await user.save();
+  }
+
+  return user;
+};
+
+// Instance method to check if user is enrolled in a session
+userSchema.methods.hasSession = function (sessionId) {
+  return this.mySessions.some(
+    (session) => session.sessionId.toString() === sessionId.toString()
+  );
+};
+
+// Instance method to check if user attended a session
+userSchema.methods.hasAttendedSession = function (sessionId) {
+  const session = this.mySessions.find(
+    (session) => session.sessionId.toString() === sessionId.toString()
+  );
+
+  return session ? session.attended : false;
+};
+
+// Instance method to get upcoming sessions
+userSchema.methods.getUpcomingSessions = function () {
+  const now = new Date();
+  return this.mySessions.filter((session) => {
+    // This would need to be populated to check session date
+    // For now, just return all enrolled sessions
+    return true;
+  });
 };
 
 // Instance method to check if user has purchased a course
