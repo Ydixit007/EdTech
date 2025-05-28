@@ -8,7 +8,7 @@ export async function GET(request, { params }) {
     // Connect to MongoDB
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {
@@ -85,7 +85,7 @@ export async function PUT(request, { params }) {
     // Connect to MongoDB
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
     const body = await request.json();
 
     // Validate ObjectId
@@ -237,7 +237,7 @@ export async function DELETE(request, { params }) {
     // Connect to MongoDB
     await connectDB();
 
-    const { id } = params;
+    const { id } = await params;
 
     // Validate ObjectId
     if (!mongoose.Types.ObjectId.isValid(id)) {

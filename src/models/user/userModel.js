@@ -42,6 +42,35 @@ const userSchema = new mongoose.Schema(
     token: {
       type: String,
     },
+    myCourses: [
+      {
+        courseId: {
+          type: mongoose.Schema.Types.ObjectId,
+          ref: "onlineCourses",
+          required: true,
+        },
+        isCompleted: {
+          type: Boolean,
+          default: false,
+        },
+        enrolledAt: {
+          type: Date,
+          default: Date.now,
+        },
+        completedVideos: [
+          {
+            videoId: {
+              type: mongoose.Schema.Types.ObjectId,
+              required: true,
+            },
+            completedAt: {
+              type: Date,
+              default: Date.now,
+            },
+          },
+        ],
+      },
+    ],
   },
   {
     timestamps: true, // Automatically manages createdAt and updatedAt
@@ -105,6 +134,89 @@ userSchema.methods.comparePassword = async function (candidatePassword) {
 // Instance method to get full name
 userSchema.methods.getFullName = function () {
   return `${this.firstName} ${this.lastName}`;
+};
+
+// Instance method to add course to user's purchased courses
+userSchema.methods.addCourse = async function (courseId) {
+  const user = this;
+  const courseExists = user.myCourses.some(
+    (course) => course.courseId.toString() === courseId.toString()
+  );
+
+  if (!courseExists) {
+    user.myCourses.push({ courseId });
+    await user.save();
+  }
+
+  return user;
+};
+
+// Instance method to mark course as completed
+userSchema.methods.markCourseCompleted = async function (courseId) {
+  const user = this;
+  const course = user.myCourses.find(
+    (course) => course.courseId.toString() === courseId.toString()
+  );
+
+  if (course) {
+    course.isCompleted = true;
+    await user.save();
+  }
+
+  return user;
+};
+
+// Instance method to mark video as completed
+userSchema.methods.markVideoCompleted = async function (courseId, videoId) {
+  const user = this;
+  const course = user.myCourses.find(
+    (course) => course.courseId.toString() === courseId.toString()
+  );
+
+  if (course) {
+    const videoExists = course.completedVideos.some(
+      (video) => video.videoId.toString() === videoId.toString()
+    );
+
+    if (!videoExists) {
+      course.completedVideos.push({ videoId });
+      await user.save();
+    }
+  }
+
+  return user;
+};
+
+// Instance method to check if video is completed
+userSchema.methods.isVideoCompleted = function (courseId, videoId) {
+  const course = this.myCourses.find(
+    (course) => course.courseId.toString() === courseId.toString()
+  );
+
+  if (!course) return false;
+
+  return course.completedVideos.some(
+    (video) => video.videoId.toString() === videoId.toString()
+  );
+};
+
+// Instance method to get course progress
+userSchema.methods.getCourseProgress = function (courseId, totalVideos) {
+  const course = this.myCourses.find(
+    (course) => course.courseId.toString() === courseId.toString()
+  );
+
+  if (!course) return 0;
+
+  const completedCount = course.completedVideos.length;
+  return totalVideos > 0 ? Math.round((completedCount / totalVideos) * 100) : 0;
+};
+
+// Instance method to check if user has purchased a course
+userSchema.methods.hasCourse = function (courseId) {
+  return this.myCourses.some(
+    (course) => course.courseId.toString() === courseId.toString()
+  );
 };
 
 // Static method to find by email
