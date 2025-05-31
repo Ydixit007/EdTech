@@ -14,6 +14,10 @@ const publicRoutes = [
   "/",
   "/about",
   "/contact",
+  "/home",
+  "/courses",
+  "/view-details",
+  "/sessions",
 ];
 
 // Define routes that require specific roles

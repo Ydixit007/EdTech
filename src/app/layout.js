@@ -1,5 +1,9 @@
 import { Geist, Geist_Mono } from "next/font/google";
+import { ToasterProvider } from "@/components/ui/toast";
 import "./globals.css";
+import { AppSidebar } from "@/components/app-sidebar";
+import { SidebarProvider } from "@/components/ui/sidebar";
+import { Navbar1 } from "@/components/navbar1";
 
 const geistSans = Geist({
   variable: "--font-geist-sans",
@@ -22,7 +26,26 @@ export default function RootLayout({ children }) {
       <body
         className={`${geistSans.variable} ${geistMono.variable} antialiased`}
       >
-        {children}
+        {/* ✅ Wrap all content in a div instead of fragment */}
+        <div>
+          <ToasterProvider />
+          <SidebarProvider>
+            <div className="flex min-h-screen w-full">
+              {/* Sidebar */}
+              <div className="w-[20%] pl-4 max-[766px]:w-0 overflow-hidden">
+                <AppSidebar />
+              </div>
+
+              {/* Main content */}
+              <div className="w-[calc(100%-22%)] flex flex-col h-screen overflow-hidden">
+                <div className="sticky top-0 z-50 bg-white w-full px-10 sm:px-20 lg:px-4">
+                  <Navbar1 className="w-full py-0" />
+                </div>
+                <main className="flex-1 overflow-y-auto p-4">{children}</main>
+              </div>
+            </div>
+          </SidebarProvider>
+        </div>
       </body>
     </html>
   );
